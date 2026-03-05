@@ -13,3 +13,10 @@ desde a origem até a linha de montagem.A solução Green Roots foi projetada pa
 ## Funcionalidade --
 Nossa estação, instalada diretamente na linha de produção do fornecedor, é o cérebro da captura de dados. 
 Ela transforma a produção em inteligência, medindo o que realmente importa, e não apenas o que é reportado.
+
+## Criação de BrModelo --
+### Modelo Conceitual ---
+<img width="750" height="418" alt="Modelo_Conceitual" src="https://github.com/user-attachments/assets/db65e8a9-25df-46e2-bfff-d768fb57d9f5" />
+
+### Modelo Lógico ---
+<img width="750" height="418" alt="Modelo_Lógico" src="https://github.com/user-attachments/assets/7b06c73e-1921-4a59-9e0c-863f28d0bd62" />
