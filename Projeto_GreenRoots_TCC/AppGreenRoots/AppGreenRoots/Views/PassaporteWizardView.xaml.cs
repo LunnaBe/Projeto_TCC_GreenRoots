@@ -2,9 +2,9 @@
 
 namespace AppGreenRoots.Views;
 
-public partial class DashboardView : UserControl
+public partial class PassaporteWizardView : UserControl
 {
-    public DashboardView()
+    public PassaporteWizardView()
     {
         InitializeComponent();
     }

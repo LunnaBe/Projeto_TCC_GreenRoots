@@ -1,0 +1,60 @@
+﻿using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using System.Windows;
+using AppGreenRoots.Models;
+
+namespace AppGreenRoots.ViewModels;
+
+public class MainViewModel : INotifyPropertyChanged
+{
+    private object _currentViewModel = null!;
+
+    public object CurrentViewModel
+    {
+        get => _currentViewModel;
+        private set { _currentViewModel = value; OnPropertyChanged(); }
+    }
+
+    public Usuario? UsuarioLogado { get; private set; }
+
+    public MainViewModel()
+    {
+        IrParaLogin();
+    }
+
+    public void IrParaLogin()
+    {
+        CurrentViewModel = new LoginViewModel(
+            onLoginSucesso: u => IrParaDashboard(u),
+            onExit: () => Application.Current.Shutdown()
+        );
+    }
+
+    public void IrParaDashboard(Usuario usuario)
+    {
+        UsuarioLogado = usuario;
+
+        CurrentViewModel = new DashboardViewModel(
+            usuario,
+            onLogout: () => IrParaLogin(),
+            onAbrirPassaporte: () => IrParaPassaporte(),
+            onExit: () => Application.Current.Shutdown()
+        );
+    }
+
+    public void IrParaPassaporte()
+    {
+        CurrentViewModel = new PassaporteWizardViewModel(
+            usuario: UsuarioLogado,
+            onVoltar: () =>
+            {
+                if (UsuarioLogado != null) IrParaDashboard(UsuarioLogado);
+                else IrParaLogin();
+            }
+        );
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+    protected void OnPropertyChanged([CallerMemberName] string? name = null)
+        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+}

@@ -1,81 +1,74 @@
-﻿using System.IO;
-using System.Windows;
-using AppGreenRoots.Models;
-using Microsoft.Data.Sqlite;
+﻿using Microsoft.Data.Sqlite;
+using System;
+using System.IO;
 
 namespace AppGreenRoots.Data;
 
 public static class Database
 {
-    private static readonly string DbPath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-        "AppGreenRoots_Banco"
-    );
-
-    private static readonly string CaminhoArquivoBanco = Path.Combine(DbPath, "Passaporte_Digital.db");
-    
-    // Unificando a Connection String para evitar confusão
-    private static readonly string ConnectionString = $"Data Source={CaminhoArquivoBanco}";
-
-    static Database()
+    private static readonly string dbPath =
+     Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Passaporte_Digital.db");
+    public static SqliteConnection GetConnection()
     {
-        if (!Directory.Exists(DbPath))
-            Directory.CreateDirectory(DbPath);
-
-        // Corrigido: Verifica o caminho do arquivo, não a string de conexão completa
-        if (!File.Exists(CaminhoArquivoBanco))
-        {
-            // Opcional: Criar o banco e as tabelas automaticamente aqui
-            Console.WriteLine("Banco de dados não encontrado!!");
-        }
+        var conn = new SqliteConnection($"Data Source={dbPath}");
+        conn.Open();
+        return conn;
     }
 
-    public static SqliteConnection GetConnection() => new SqliteConnection(ConnectionString);
-
-    public static Usuario? AutenticarUsuario(string email, string senha)
+    public static void Initialize()
     {
-        // Nota: Em produção, compare o HASH da senha, não o texto puro
         using var conn = GetConnection();
-        conn.Open();
-        var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT id_usuario, nome, email, senha FROM Usuario WHERE email = @email AND senha = @senha LIMIT 1";
-        cmd.Parameters.AddWithValue("@email", email);
-        cmd.Parameters.AddWithValue("@senha", senha);
+        using var cmd = conn.CreateCommand();
 
-        using var reader = cmd.ExecuteReader();
-        if (reader.Read())
-            return new Usuario {
-                Id_Usuario = reader.GetInt32(0),
-                Nome = reader.GetString(1),
-                Email = reader.GetString(2),
-                Senha = reader.GetString(3)
-            };
-        
-        return null;
-    }
+        cmd.CommandText =
+        """
+        PRAGMA foreign_keys = ON;
 
-    public static bool CadastrarUsuario(string nome, string email, string senha)
-    {
-        if (senha.Length > 8)
-            throw new ArgumentException("A senha deve ter no máximo 8 caracteres.");
+        CREATE TABLE IF NOT EXISTS Usuario (
+            id_usuario INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome TEXT NOT NULL,
+            email TEXT NOT NULL UNIQUE,
+            senha TEXT NOT NULL
+        );
 
-        using var conn = GetConnection();
-        conn.Open();
+        CREATE TABLE IF NOT EXISTS MateriaPrima (
+            id_materia INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome TEXT NOT NULL,
+            tipo TEXT,
+            fator_carbono REAL NOT NULL DEFAULT 0,
+            fk_id_fornecedor INTEGER
+        );
 
-        // Verificar se usuário já existe
-        var checkCmd = conn.CreateCommand();
-        checkCmd.CommandText = "SELECT EXISTS(SELECT 1 FROM Usuario WHERE email = @email)";
-        checkCmd.Parameters.AddWithValue("@email", email);
-        
-        if ((long)checkCmd.ExecuteScalar()! == 1) return false;
+        CREATE TABLE IF NOT EXISTS Passaporte (
+            id_passaporte INTEGER PRIMARY KEY AUTOINCREMENT,
+            codigo TEXT NOT NULL UNIQUE,
+            data_geracao TEXT NOT NULL,
+            status TEXT NOT NULL,
+            emissao_co2 REAL NOT NULL DEFAULT 0,
+            energia_kwh REAL NOT NULL DEFAULT 0,
+            caminho_pdf TEXT,
+            fk_id_usuario INTEGER,
+            fk_id_componente INTEGER,
 
-        // Inserir novo usuário
-        var cmd = conn.CreateCommand();
-        cmd.CommandText = "INSERT INTO Usuario (nome, email, senha) VALUES (@nome, @email, @senha)";
-        cmd.Parameters.AddWithValue("@nome", nome);
-        cmd.Parameters.AddWithValue("@email", email);
-        cmd.Parameters.AddWithValue("@senha", senha);
-        
-        return cmd.ExecuteNonQuery() > 0;
+            FOREIGN KEY (fk_id_usuario) REFERENCES Usuario(id_usuario)
+        );
+
+        CREATE TABLE IF NOT EXISTS Passaporte_Materiais (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id_passaporte INTEGER NOT NULL,
+            id_materia INTEGER,
+            nome_materia TEXT NOT NULL,
+            peso_usado REAL NOT NULL,
+            fator_carbono REAL NOT NULL,
+
+            FOREIGN KEY (id_passaporte) REFERENCES Passaporte(id_passaporte) ON DELETE CASCADE,
+            FOREIGN KEY (id_materia) REFERENCES MateriaPrima(id_materia)
+        );
+
+        CREATE INDEX IF NOT EXISTS IX_Passaporte_Data ON Passaporte(data_geracao);
+        CREATE INDEX IF NOT EXISTS IX_PM_Passaporte ON Passaporte_Materiais(id_passaporte);
+        """;
+
+        cmd.ExecuteNonQuery();
     }
 }

@@ -1,38 +1,29 @@
-﻿using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Windows;
+﻿using AppGreenRoots.Helpers;
 using System.Windows.Input;
-using AppGreenRoots.Commands;
-using AppGreenRoots.Models;
 
 namespace AppGreenRoots.ViewModels;
 
-public class DashboardViewModel : INotifyPropertyChanged
+public class DashboardViewModel : BaseViewModel
 {
-    private readonly Usuario _usuario;
-    public string NomeUsuario  => _usuario.Nome;
-    public string EmailUsuario => _usuario.Email;
+    private readonly ShellViewModel shell;
 
+    public string NomeUsuario { get; set; } = "Usuário";
+
+    public ICommand AbrirPassaporteCommand { get; }
     public ICommand LogoutCommand { get; }
 
-    public DashboardViewModel(Usuario usuario)
+    public DashboardViewModel(ShellViewModel shell)
     {
-        _usuario      = usuario;
-        LogoutCommand = new RelayCommand(_ => ExecutarLogout());
-        
-    }
+        this.shell = shell;
 
-    private void ExecutarLogout()
-    {
-        var login = new Views.LoginView();
-        login.Show();
-        foreach (Window w in Application.Current.Windows)
-            if (w is Views.DashboardView) { w.Close(); break; }
-    }
+        AbrirPassaporteCommand = new RelayCommand(_ =>
+        {
+            shell.NavigatePassaporte();
+        });
 
-    public event PropertyChangedEventHandler? PropertyChanged;
-    protected void OnPropertyChanged([CallerMemberName] string? name = null)
-        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-    
-    
+        LogoutCommand = new RelayCommand(_ =>
+        {
+            shell.NavigateLogin();
+        });
+    }
 }

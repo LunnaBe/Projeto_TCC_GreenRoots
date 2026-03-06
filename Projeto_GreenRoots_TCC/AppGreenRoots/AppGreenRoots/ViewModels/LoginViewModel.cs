@@ -1,97 +1,115 @@
-﻿using System.ComponentModel;
-using System.Runtime.CompilerServices;
+﻿
+using AppGreenRoots.Helpers;
+using AppGreenRoots.Models;
+using AppGreenRoots.Services;
+using System;
 using System.Windows.Input;
-using AppGreenRoots.Commands;
-using AppGreenRoots.Data; // ← adicionar esse using
 
 namespace AppGreenRoots.ViewModels;
 
-public class LoginViewModel : INotifyPropertyChanged
+public class LoginViewModel : BaseViewModel
 {
-    private string _email    = string.Empty;
-    private string _senha    = string.Empty;
-    private string _nome     = string.Empty;
-    private string _mensagem = string.Empty;
-    private bool   _isCadastro;
+    private readonly ShellViewModel _shell;
+    private readonly UsuarioService _usuarioService = new();
 
-    public string Email    { get => _email;    set { _email    = value; OnPropertyChanged(); } }
-    public string Senha    { get => _senha;    set { _senha    = value; OnPropertyChanged(); } }
-    public string Nome     { get => _nome;     set { _nome     = value; OnPropertyChanged(); } }
-    public string Mensagem { get => _mensagem; set { _mensagem = value; OnPropertyChanged(); } }
+    public LoginViewModel(ShellViewModel shell)
+    {
+        _shell = shell;
 
+        LoginCommand = new RelayCommand(_ => Login());
+        CadastrarCommand = new RelayCommand(_ => Cadastrar());
+        AlternarModoCommand = new RelayCommand(_ => AlternarModo());
+        ExitCommand = new RelayCommand(_ => Environment.Exit(0));
+    }
+
+    private bool _isCadastro;
     public bool IsCadastro
     {
         get => _isCadastro;
-        set { _isCadastro = value; OnPropertyChanged(); OnPropertyChanged(nameof(IsLogin)); Mensagem = ""; }
+        set { _isCadastro = value; OnPropertyChanged(); }
     }
-    public bool IsLogin => !_isCadastro;
 
-    public ICommand LoginCommand        { get; }
-    public ICommand CadastrarCommand    { get; }
+    private string _nome = "";
+    public string Nome
+    {
+        get => _nome;
+        set { _nome = value; OnPropertyChanged(); }
+    }
+
+    private string _email = "";
+    public string Email
+    {
+        get => _email;
+        set { _email = value; OnPropertyChanged(); }
+    }
+
+    private string _senha = "";
+    public string Senha
+    {
+        get => _senha;
+        set { _senha = value; OnPropertyChanged(); }
+    }
+
+    private string _mensagem = "";
+    public string Mensagem
+    {
+        get => _mensagem;
+        set { _mensagem = value; OnPropertyChanged(); }
+    }
+
+    public ICommand LoginCommand { get; }
+    public ICommand CadastrarCommand { get; }
     public ICommand AlternarModoCommand { get; }
+    public ICommand ExitCommand { get; }
 
-    public LoginViewModel()
+    private void AlternarModo()
     {
-        LoginCommand        = new RelayCommand(_ => ExecutarLogin());
-        CadastrarCommand    = new RelayCommand(_ => ExecutarCadastro());
-        AlternarModoCommand = new RelayCommand(_ => IsCadastro = !IsCadastro);
+        IsCadastro = !IsCadastro;
+        Mensagem = "";
     }
 
-    // ✅ IMPLEMENTADO
-    private void ExecutarLogin()
+    private void Login()
     {
-        Mensagem = string.Empty;
+        var usuario = _usuarioService.Login(Email, Senha);
 
-        if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Senha))
+        if (usuario == null)
         {
-            Mensagem = "Preencha o e-mail e a senha.";
+            Mensagem = "Usuário ou senha inválidos.";
             return;
         }
 
-        var usuario = Database.AutenticarUsuario(Email, Senha);
-
-        if (usuario != null)
-        {
-            var dashboard = new Views.DashboardView();
-            dashboard.DataContext = new DashboardViewModel(usuario);
-            dashboard.Show();
-
-            foreach (System.Windows.Window w in System.Windows.Application.Current.Windows)
-                if (w is Views.LoginView) { w.Close(); break; }
-        }
-        else
-        {
-            Mensagem = "E-mail ou senha inválidos.";
-        }
+        _shell.NavigateDashboard();
     }
 
-    // ✅ IMPLEMENTADO
-    private void ExecutarCadastro()
+    private void Cadastrar()
     {
-        Mensagem = string.Empty;
-
-        if (string.IsNullOrWhiteSpace(Nome) || string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Senha))
+        if (string.IsNullOrWhiteSpace(Nome))
         {
-            Mensagem = "Preencha todos os campos.";
+            Mensagem = "Informe o nome.";
             return;
         }
 
-        var sucesso = Database.CadastrarUsuario(Nome, Email, Senha);
+        if (string.IsNullOrWhiteSpace(Email))
+        {
+            Mensagem = "Informe o email.";
+            return;
+        }
 
-        if (sucesso)
+        if (string.IsNullOrWhiteSpace(Senha))
         {
-            Mensagem = "Cadastro realizado! Faça o login.";
-            IsCadastro = false; // volta para a tela de login
-            Nome  = string.Empty;
-            Senha = string.Empty;
+            Mensagem = "Informe a senha.";
+            return;
         }
-        else
+
+        var ok = _usuarioService.Cadastrar(Nome, Email, Senha);
+
+        if (!ok)
         {
-            Mensagem = "Erro ao cadastrar. Tente outro e-mail.";
+            Mensagem = "E-mail já cadastrado.";
+            return;
         }
+
+        Mensagem = "Conta criada com sucesso!";
+        IsCadastro = false;
     }
-
-    public event PropertyChangedEventHandler? PropertyChanged;
-    protected void OnPropertyChanged([CallerMemberName] string? name = null)
-        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 }

@@ -1,0 +1,134 @@
+﻿<UserControl x:Class="AppGreenRoots.Views.PassaporteWizardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="Transparent">
+
+    <UserControl.Resources>
+        <SolidColorBrush x:Key="BgDark"   Color="#0D1A12"/>
+        <SolidColorBrush x:Key="BgCard"   Color="#13261A"/>
+        <SolidColorBrush x:Key="Green"    Color="#2ECC71"/>
+        <SolidColorBrush x:Key="White"    Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="TextMuted" Color="#A0B8A8"/>
+        <SolidColorBrush x:Key="BorderClr" Color="#2A5038"/>
+    </UserControl.Resources>
+
+    <Border CornerRadius="12" Background="{StaticResource BgDark}">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="30" ShadowDepth="0" Color="#000000" Opacity="0.5"/>
+        </Border.Effect>
+
+        <Grid Margin="18">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Top bar -->
+            <Grid Grid.Row="0" Margin="0,0,0,12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="Gerar Passaporte Digital"
+                           FontSize="18" FontWeight="Bold"
+                           Foreground="{StaticResource White}"
+                           VerticalAlignment="Center"/>
+
+                <Button Grid.Column="1"
+                        Content="Voltar"
+                        Padding="14,6"
+                        Command="{Binding VoltarCommand}"
+                        Cursor="Hand"/>
+            </Grid>
+
+            <!-- Conteúdo -->
+            <Grid Grid.Row="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0" Margin="0,0,0,10">
+                    <TextBlock Text="Energia (kWh)"
+                               Foreground="{StaticResource TextMuted}" />
+                    <TextBox Text="{Binding EnergiaKwh, UpdateSourceTrigger=PropertyChanged}"
+                             Height="34"/>
+                </StackPanel>
+
+                <GroupBox Grid.Row="1" Header="Adicionar material" Margin="0,0,0,10">
+                    <Grid Margin="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="120"/>
+                            <ColumnDefinition Width="120"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                            <TextBlock Text="Nome" Foreground="{StaticResource TextMuted}" />
+                            <TextBox Text="{Binding MaterialNome, UpdateSourceTrigger=PropertyChanged}" Height="34"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1" Margin="0,0,10,0">
+                            <TextBlock Text="Peso" Foreground="{StaticResource TextMuted}" />
+                            <TextBox Text="{Binding MaterialPeso, UpdateSourceTrigger=PropertyChanged}" Height="34"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2" Margin="0,0,10,0">
+                            <TextBlock Text="Fator CO₂" Foreground="{StaticResource TextMuted}" />
+                            <TextBox Text="{Binding MaterialFator, UpdateSourceTrigger=PropertyChanged}" Height="34"/>
+                        </StackPanel>
+
+                        <Button Grid.Column="3"
+                                Content="Adicionar"
+                                Padding="14,6"
+                                VerticalAlignment="Bottom"
+                                Command="{Binding AddMaterialCommand}"/>
+                    </Grid>
+                </GroupBox>
+
+                <GroupBox Grid.Row="2" Header="Materiais adicionados">
+                    <DockPanel Margin="10">
+                        <Button DockPanel.Dock="Top"
+                                Content="Remover selecionado"
+                                Padding="12,6"
+                                Margin="0,0,0,8"
+                                Command="{Binding RemoverMaterialCommand}"/>
+
+                        <DataGrid ItemsSource="{Binding Materiais}"
+                                  SelectedItem="{Binding SelectedMaterial}"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  HeadersVisibility="Column"
+                                  Height="220">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Matéria-prima" Binding="{Binding NomeMateria}" Width="*"/>
+                                <DataGridTextColumn Header="Peso" Binding="{Binding PesoUsado}" Width="120"/>
+                                <DataGridTextColumn Header="Fator" Binding="{Binding FatorCarbono}" Width="120"/>
+                                <DataGridTextColumn Header="CO₂" Binding="{Binding EmissaoMaterial}" Width="120" IsReadOnly="True"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </DockPanel>
+                </GroupBox>
+
+                <TextBlock Grid.Row="3"
+                           Text="{Binding Mensagem}"
+                           Foreground="#E74C3C"
+                           Margin="0,10,0,0"
+                           TextWrapping="Wrap"/>
+            </Grid>
+
+            <!-- Rodapé -->
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+                <Button Content="Gerar PDF"
+                        Padding="18,8"
+                        Command="{Binding GerarCommand}"
+                        Cursor="Hand"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>
