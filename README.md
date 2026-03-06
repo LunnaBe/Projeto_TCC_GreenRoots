@@ -3,7 +3,7 @@ Uma empresa tem uma meta clara de reduzir emissões, aquelas geradas em sua vast
 
 ## Integrantes --
 **Nome:** Luna Beatriz Alves, Kaio Alves Gonzaga Silva, Yhan Phillipe Barbosa Machado  <br>
-
+**Curso:** Desenvolvimento de Sistemas  <br>
 **Instrutor:** Frederico Martins Aguiar  <br>
 
 ## Principais Dores da Empresa --
