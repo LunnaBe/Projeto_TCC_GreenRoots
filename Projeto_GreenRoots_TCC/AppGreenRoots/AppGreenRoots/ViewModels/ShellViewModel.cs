@@ -1,4 +1,5 @@
 ﻿using AppGreenRoots.Helpers;
+using AppGreenRoots.Models;
 
 namespace AppGreenRoots.ViewModels;
 
@@ -16,21 +17,22 @@ public class ShellViewModel : BaseViewModel
         }
     }
 
+    // Define a tela de login como o ponto de entrada da aplicação
     public ShellViewModel()
     {
         CurrentViewModel = new LoginViewModel(this);
     }
 
-    public void NavigateDashboard()
+    public void NavigateDashboard(Usuario usuario)
     {
-        CurrentViewModel = new TelaInicialViewModel(this);
+        CurrentViewModel = new TelaInicialViewModel(this, usuario);
     }
 
-    public void NavigatePassaporte()
+    public void NavigatePassaporte(Usuario usuario)
     {
         CurrentViewModel = new PassaporteWizardViewModel(
             usuario: null,
-            onVoltar: () => NavigateDashboard()
+            onVoltar: () => NavigateDashboard(usuario)
         );
     }
 

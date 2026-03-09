@@ -16,6 +16,7 @@ public class LoginViewModel : BaseViewModel
     {
         _shell = shell;
 
+        // Inicialização dos comandos que a View irá chamar através de Binding
         LoginCommand = new RelayCommand(_ => Login());
         CadastrarCommand = new RelayCommand(_ => Cadastrar());
         AlternarModoCommand = new RelayCommand(_ => AlternarModo());
@@ -62,6 +63,7 @@ public class LoginViewModel : BaseViewModel
     public ICommand AlternarModoCommand { get; }
     public ICommand ExitCommand { get; }
 
+    // Alterna entre modo Login e modo Cadastro
     private void AlternarModo()
     {
         IsCadastro = !IsCadastro;
@@ -78,7 +80,7 @@ public class LoginViewModel : BaseViewModel
             return;
         }
 
-        _shell.NavigateDashboard();
+        _shell.NavigateDashboard(usuario);
     }
 
     private void Cadastrar()

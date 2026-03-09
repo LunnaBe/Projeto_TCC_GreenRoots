@@ -8,6 +8,7 @@ namespace AppGreenRoots.Repositories;
 
 public class PassaporteRepository
 {
+    // Insere um registro no banco e retorna o ID gerado automaticamente
     public int InserirPassaporte(Passaporte p)
     {
         using var conn = Database.GetConnection();
@@ -21,6 +22,7 @@ public class PassaporteRepository
         SELECT last_insert_rowid();
         """;
 
+        // Parâmetros protegem contra SQL Injection
         cmd.Parameters.AddWithValue("@codigo", p.Codigo);
         cmd.Parameters.AddWithValue("@data", p.Data_Geracao.ToString("s"));
         cmd.Parameters.AddWithValue("@status", p.Status);
@@ -33,15 +35,17 @@ public class PassaporteRepository
         return Convert.ToInt32((long)cmd.ExecuteScalar()!);
     }
 
+    // Insere múltiplos materiais associados a um passaporte dentro de uma transação
     public void InserirMateriais(int idPassaporte, IEnumerable<PassaporteMaterial> materiais)
     {
         using var conn = Database.GetConnection();
+        // O uso da Transação garante que ou tudo é salvo ou nada é salvo (Atomicidade)
         using var tx = conn.BeginTransaction();
 
         foreach (var m in materiais)
         {
             using var cmd = conn.CreateCommand();
-            cmd.Transaction = tx;
+            cmd.Transaction = tx; // Vincula o comando à transação
 
             cmd.CommandText =
             """
@@ -65,6 +69,8 @@ public class PassaporteRepository
 
         tx.Commit();
     }
+    
+    // Lista todos os passaportes, convertendo as colunas do SQLite para objetos 
     public List<Passaporte> ListarPassaportes()
     {
         var lista = new List<Passaporte>();
@@ -87,6 +93,7 @@ public class PassaporteRepository
             {
                 Id_Passaporte = r.GetInt32(0),
                 Codigo = r.GetString(1),
+                // Tratamento de segurança ao converter string do banco para DateTime
                 Data_Geracao = DateTime.TryParse(r.GetString(2), out var dt) ? dt : DateTime.Now,
                 Status = r.GetString(3),
                 Emissao_CO2 = r.GetDouble(4),

@@ -12,27 +12,33 @@ public class PassaporteService
 {
     private readonly PassaporteRepository _repo = new();
 
+    // Define o fator de conversão de energia para carbono
     public double FatorCO2PorKwh { get; set; } = 0.0;
 
+    // Método que coordena o fluxo de criação do Passaporte Digital
     public (int idPassaporte, string caminhoPdf) GerarPassaporte(
         int? idUsuario,
         int? idComponente,
         double energiaKwh,
         List<PassaporteMaterial> materiais)
     {
+        // Garante que um passaporte tenha pelo menos um material
         if (materiais.Count == 0)
             throw new ArgumentException("Adicione pelo menos 1 matéria-prima.");
 
         var co2Materiais = 0.0;
 
+        // Cálculo da soma das emissões de materiais + emissão da energia consumida
         foreach (var m in materiais)
             co2Materiais += m.EmissaoMaterial;
 
         var co2Energia = energiaKwh * FatorCO2PorKwh;
         var co2Total = co2Materiais + co2Energia;
 
+        // Gera um código único para o passaporte
         var codigo = $"GR-{DateTime.Now:yyyyMMdd-HHmmss}-{Guid.NewGuid().ToString("N")[..6].ToUpper()}";
 
+        // Diretório para armazenar os PDFs gerados
         var pasta = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
             "AppGreenRoots_Passaportes");
@@ -41,8 +47,10 @@ public class PassaporteService
 
         var pdfPath = Path.Combine(pasta, $"{codigo}.pdf");
 
+        // Gera um arquivo PDF usando iTextSharp ou similares
         GerarPdf(pdfPath, codigo, energiaKwh, co2Total, materiais);
 
+        // Prepara o objeto para ser salvo no banco de dados
         var passaporte = new Passaporte
         {
             Codigo = codigo,
@@ -55,12 +63,14 @@ public class PassaporteService
             Fk_Id_Componente = idComponente
         };
 
+        // Salva o Passaporte e vincula os materiais
         var id = _repo.InserirPassaporte(passaporte);
         _repo.InserirMateriais(id, materiais);
 
         return (id, pdfPath);
     }
 
+    // Método de construção do layout do PDF
     private static void GerarPdf(
         string path,
         string codigo,

@@ -16,8 +16,8 @@
         <SolidColorBrush x:Key="TextMuted"  Color="#6B9E7A"/>
         <SolidColorBrush x:Key="InputBg"    Color="#12844d"/>
         <SolidColorBrush x:Key="BorderClr"  Color="#2A5038"/>
-        <SolidColorBrush x:Key="Bronw"  Color="#522828"/>
-
+        <SolidColorBrush x:Key="Brown"  Color="#522828"/>
+        
         <Style x:Key="Input" TargetType="TextBox">
             <Setter Property="Background" Value="{StaticResource BgGrennDark}"/>
             <Setter Property="Foreground" Value="{StaticResource TextLight}"/>

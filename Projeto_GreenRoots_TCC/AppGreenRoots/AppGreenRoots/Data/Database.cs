@@ -6,8 +6,11 @@ namespace AppGreenRoots.Data;
 
 public static class Database
 {
+    // Define o caminho do banco de dados
     private static readonly string dbPath =
      Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Passaporte_Digital.db");
+    
+    // Método que cria e abre uma conexão com o SQLite
     public static SqliteConnection GetConnection()
     {
         var conn = new SqliteConnection($"Data Source={dbPath}");
@@ -15,11 +18,13 @@ public static class Database
         return conn;
     }
 
+    // Inicializa o banco de dados criando tabelas e indices
     public static void Initialize()
     {
         using var conn = GetConnection();
         using var cmd = conn.CreateCommand();
 
+        // Script do SQLite
         cmd.CommandText =
         """
         PRAGMA foreign_keys = ON;

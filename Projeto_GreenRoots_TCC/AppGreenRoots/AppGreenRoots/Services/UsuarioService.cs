@@ -6,10 +6,12 @@ namespace AppGreenRoots.Services;
 
 public class UsuarioService
 {
+    // Registra um novo usuário no banco
     public bool Cadastrar(string nome, string email, string senha)
     {
         using var conn = Database.GetConnection();
 
+        // Verifica se o email já existe para evitar usuários com o mesmo email
         var check = conn.CreateCommand();
         check.CommandText = "SELECT COUNT(*) FROM Usuario WHERE email=@e";
         check.Parameters.AddWithValue("@e", email);
@@ -33,6 +35,7 @@ public class UsuarioService
         return true;
     }
 
+    // Valida se login for realizado com sucesso
     public Usuario? Login(string email, string senha)
     {
         using var conn = Database.GetConnection();
